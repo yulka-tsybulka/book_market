@@ -1,8 +1,8 @@
 package my.book.market.mapper;
 
 import my.book.market.config.MapperConfig;
-import my.book.market.dto.BookDto;
-import my.book.market.dto.CreateBookRequestDto;
+import my.book.market.dto.book.BookDto;
+import my.book.market.dto.book.CreateBookRequestDto;
 import my.book.market.model.Book;
 import org.mapstruct.Mapper;
 

@@ -1,4 +1,4 @@
-package my.book.market.repository;
+package my.book.market.repository.book;
 
 import my.book.market.model.Book;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package my.book.market.dto;
+package my.book.market.dto.book;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
