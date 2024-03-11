@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-admin-user
+      author: u
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email, value: "admin@example.com" }
+              - column: { name: password, value: "0123456789" }
+              - column: { name: first_name, value: "admin" }
+              - column: { name: last_name, value: "admin" }
+              - column: { name: shipping_address, value: "123 Main st, City, Country" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email, value: "bob@example.com" }
+              - column: { name: password, value: "0123456789" }
+              - column: { name: first_name, value: "Bob" }
+              - column: { name: last_name, value: "Bob" }
+              - column: { name: shipping_address, value: "456 Main st, City, Country" }
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: email, value: "alis@example.com" }
+              - column: { name: password, value: "0123456789" }
+              - column: { name: first_name, value: "Alis" }
+              - column: { name: last_name, value: "Alis" }
+              - column: { name: shipping_address, value: "789 Main st, City, Country" }
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 1 }
+              - column: { name: role_id, value: 1 }
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 2 }
+              - column: { name: role_id, value: 2 }
+        - insert:
+            tableName: users_roles
+            columns:
+              - column: { name: user_id, value: 3 }
+              - column: { name: role_id, value: 2 }
