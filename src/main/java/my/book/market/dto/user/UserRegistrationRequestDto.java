@@ -1,14 +1,13 @@
 package my.book.market.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import my.book.market.validation.FieldMatch;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
+@FieldMatch(first = "password", second = "repeatPassword")
 public class UserRegistrationRequestDto {
     @NotBlank
     @Email(message = "Please provide a valid email address")
@@ -25,9 +24,4 @@ public class UserRegistrationRequestDto {
     private String lastName;
     @NotBlank
     private String shippingAddress;
-
-    @AssertTrue(message = "Passwords do not match")
-    private boolean isPasswordsMatch() {
-        return password.equals(repeatPassword);
-    }
 }

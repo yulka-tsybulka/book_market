@@ -2,6 +2,7 @@ package my.book.market.service;
 
 import java.util.List;
 import my.book.market.dto.book.BookDto;
+import my.book.market.dto.book.BookDtoWithoutCategoryIds;
 import my.book.market.dto.book.BookSearchParametersDto;
 import my.book.market.dto.book.CreateBookRequestDto;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ public interface BookService {
     BookDto findById(Long id);
 
     List<BookDto> search(BookSearchParametersDto parameters);
+
+    List<BookDtoWithoutCategoryIds> findBooksByCategoryId(Long categoryId);
 
     BookDto updateById(Long id, CreateBookRequestDto requestDto);
 

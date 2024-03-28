@@ -3,6 +3,7 @@ package my.book.market.service.impl;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import my.book.market.dto.book.BookDto;
+import my.book.market.dto.book.BookDtoWithoutCategoryIds;
 import my.book.market.dto.book.BookSearchParametersDto;
 import my.book.market.dto.book.CreateBookRequestDto;
 import my.book.market.exception.EntityNotFoundException;
@@ -49,6 +50,13 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findAll(bookSpecification)
                 .stream()
                 .map(bookMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<BookDtoWithoutCategoryIds> findBooksByCategoryId(Long categoryId) {
+        return bookRepository.findAllByCategoryId(categoryId)
+                .stream().map(bookMapper::toDtoWithoutCategories)
                 .toList();
     }
 
