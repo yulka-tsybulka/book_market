@@ -1,5 +1,6 @@
 package my.book.market.mapper;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 import my.book.market.config.MapperConfig;
 import my.book.market.dto.book.BookDto;
@@ -11,6 +12,7 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 
 @Mapper(config = MapperConfig.class)
 public interface BookMapper {
@@ -39,4 +41,11 @@ public interface BookMapper {
     }
 
     BookDtoWithoutCategoryIds toDtoWithoutCategories(Book book);
+
+    @Named("bookById")
+    default Book bookById(Long id) {
+        return Optional.ofNullable(id)
+                .map(Book::new)
+                .orElse(null);
+    }
 }
