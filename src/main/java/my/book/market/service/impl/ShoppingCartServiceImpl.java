@@ -40,18 +40,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                         "Can't find book by id: " + requestDto.getBookId())
                 );
         ShoppingCart shoppingCart = getCart(userId);
-        Long bookId = book.getId();
-        Long cartId = shoppingCart.getId();
         Optional<CartItem> byBookIdAndShoppingCartId = cartItemRepository
-                .findCartItemByBookIdAndShoppingCartId(bookId, cartId);
-
+                .findCartItemByBookIdAndShoppingCartId(book.getId(), shoppingCart.getId());
         if (byBookIdAndShoppingCartId.isPresent()) {
             CartItem cartItem = byBookIdAndShoppingCartId.get();
             return updateQuantityOfCartItem(
                     cartItem.getId(), cartItem.getQuantity() + requestDto.getQuantity()
             );
         }
-
         CartItem cartItem = cartItemMapper.toModel(requestDto);
         cartItem.setBook(book);
         cartItem.setShoppingCart(shoppingCart);
