@@ -11,6 +11,7 @@ import my.book.market.dto.book.CreateBookRequestDto;
 import my.book.market.service.BookService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,8 +47,13 @@ public class BookController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get the book by id", description = "Get the book by id")
-    public BookDto getBookById(@PathVariable("id") Long id) {
-        return bookService.findById(id);
+    public ResponseEntity<BookDto> getBookById(@PathVariable("id") Long id) {
+        BookDto book = bookService.findById(id);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(book);
+        }
     }
 
     @GetMapping("/search")
