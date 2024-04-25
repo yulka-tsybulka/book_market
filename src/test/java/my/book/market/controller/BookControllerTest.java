@@ -1,6 +1,8 @@
 package my.book.market.controller;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,13 +17,13 @@ import javax.sql.DataSource;
 import lombok.SneakyThrows;
 import my.book.market.dto.book.BookDto;
 import my.book.market.dto.book.CreateBookRequestDto;
+import my.book.market.exception.EntityNotFoundException;
 import my.book.market.service.BookService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -50,6 +52,9 @@ class BookControllerTest {
     private ObjectMapper objectMapper;
     @MockBean
     private BookService bookService;
+
+    @Autowired
+    private BookController bookController;
 
     @BeforeAll
     static void beforeAll(
@@ -94,13 +99,33 @@ class BookControllerTest {
     void createBook_ValidRequestDto_Success() throws Exception {
         CreateBookRequestDto requestDto = createBookRequestDtoTest();
         BookDto expected = createBookDto();
-        Mockito.when(bookService.save(requestDto)).thenReturn(expected);
+        when(bookService.save(requestDto)).thenReturn(expected);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
                 .post("/books")).andReturn();
         BookDto actual = objectMapper.readValue(result.getResponse()
                 .getContentAsString(), BookDto.class);
         Assertions.assertNotNull(actual);
         EqualsBuilder.reflectionEquals(expected, actual,"id");
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("Verify createBook() method return bad request when Isnbn is not valid")
+    void createBook_NotValidIsbnCreateBookRequestDto_BadRequest() throws Exception {
+        CreateBookRequestDto createBookRequestDto = new CreateBookRequestDto()
+                .setTitle("Test Book")
+                .setAuthor("Test author")
+                .setIsbn("01")
+                .setPrice(BigDecimal.valueOf(90.55))
+                .setDescription("Test book")
+                .setCoverImage("Test cover")
+                .setCategoryIds(Set.of(1L));
+        String jsonRequest = objectMapper.writeValueAsString(createBookRequestDto);
+        mockMvc.perform(MockMvcRequestBuilders.post("/books")
+                        .content(jsonRequest)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
     }
 
     @Test
@@ -111,7 +136,7 @@ class BookControllerTest {
         BookDto bookDtoKLisovaPisnia = createBookDtoLisovaPisnia();
         Pageable pageable = PageRequest.of(0, 10);
         List<BookDto> expectedBooks = List.of(bookDtoKobzar, bookDtoKLisovaPisnia);
-        Mockito.when(bookService.findAll(pageable)).thenReturn(expectedBooks);
+        when(bookService.findAll(pageable)).thenReturn(expectedBooks);
         MvcResult result = mockMvc.perform(
                             MockMvcRequestBuilders.get("/books")
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -132,7 +157,7 @@ class BookControllerTest {
     void getById_ReturnById_Success() throws Exception {
         BookDto expected = createBookDtoKobzar();
         Long id = 1L;
-        Mockito.when(bookService.findById(id)).thenReturn(expected);
+        when(bookService.findById(id)).thenReturn(expected);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
                         .get("/books/{id}", id)
                         .param("id", "1"))
@@ -145,6 +170,17 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
+    @DisplayName("Verify getBookById() method returns not found for non-existing book id")
+    void getBookById_NonExistingId_NotFound() throws Exception {
+        Long nonExistingId = Long.MAX_VALUE;
+        when(bookService.findById(nonExistingId)).thenReturn(null);
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/{id}", nonExistingId))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     @DisplayName("Verify updateBookById() method works")
     void updateBookById_ValidRequestDto_Success() throws Exception {
@@ -153,9 +189,10 @@ class BookControllerTest {
         requestDto.setPrice(BigDecimal.valueOf(200.22));
         BookDto expected = createBookDtoKobzar();
         expected.setPrice(BigDecimal.valueOf(200.22));
-        Mockito.when(bookService.updateById(id, requestDto)).thenReturn(expected);
+        when(bookService.updateById(id, requestDto)).thenReturn(expected);
         String jsonRequest = objectMapper.writeValueAsString(requestDto);
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put("/books/{id}", id)
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put("/books/{id}", id)
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -164,6 +201,19 @@ class BookControllerTest {
                 result.getResponse().getContentAsString(), BookDto.class);
         assertNotNull(actual.getId());
         EqualsBuilder.reflectionEquals(expected, actual, "id");
+    }
+
+    @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @DisplayName("Verify updateById method "
+            + "returns EntityNotFoundException for non-existing book id")
+    public void updateById_NonExistingId_EntityNotFoundException() {
+        Long nonExistingId = Long.MAX_VALUE;
+        CreateBookRequestDto requestDto = createBookRequestDtoKobzar();
+        when(bookService.updateById(nonExistingId, requestDto))
+                .thenThrow(new EntityNotFoundException("Can't find book by id " + nonExistingId));
+        assertThrows(EntityNotFoundException.class,
+                () -> bookController.updateById(nonExistingId, requestDto));
     }
 
     @Test
@@ -177,7 +227,7 @@ class BookControllerTest {
         mockMvc.perform(
                         MockMvcRequestBuilders.get("/books/{id}", id)
                                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andReturn();
     }
 

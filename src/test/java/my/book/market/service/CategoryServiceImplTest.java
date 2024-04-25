@@ -50,7 +50,7 @@ class CategoryServiceImplTest {
 
     @Test
     @DisplayName("Verify save category when the category exists")
-    public void sav_ValidCreateCategoryRequestDto_ShouldReturnValidCategoryDto() {
+    public void save_ValidCreateCategoryRequestDto_ShouldReturnValidCategoryDto() {
         CreateCategoryRequestDto requestDto = createCategoryRequestDto();
         CategoryDto expected = createCategoryDto();
         when(categoryMapper.toModel(requestDto)).thenReturn(category);

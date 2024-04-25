@@ -1,5 +1,7 @@
 package my.book.market.controller;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,6 +49,9 @@ public class CategoryControllerTest {
     private ObjectMapper objectMapper;
     @MockBean
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryController categoryController;
 
     @BeforeAll
     static void beforeAll(@Autowired DataSource dataSource,
@@ -99,6 +104,21 @@ public class CategoryControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("Verify createCategory() method return bad request when name is blanc")
+    void createBook_NotValidCreateCategoryRequestDto_BadRequest() throws Exception {
+        CreateCategoryRequestDto requestDto = new CreateCategoryRequestDto()
+                .setName(null)
+                .setDescription(null);
+        String jsonRequest = objectMapper.writeValueAsString(requestDto);
+        mockMvc.perform(MockMvcRequestBuilders.post("/categories")
+                        .content(jsonRequest)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
     @WithMockUser(roles = {"ADMIN"})
     @DisplayName("Verify getAll() method works")
     void getAll_AllCategoriesInCatalog_Success() throws Exception {
@@ -134,6 +154,17 @@ public class CategoryControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = {"ADMIN"})
+    @DisplayName("Verify getCategoryById() method returns not found for non-existing Category id")
+    void getCategoryById_NonExistingId_NotFound() throws Exception {
+        Long nonExistingId = Long.MAX_VALUE;
+        when(categoryService.getById(nonExistingId)).thenReturn(null);
+        mockMvc.perform(MockMvcRequestBuilders.get("/categories/{id}", nonExistingId))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     @DisplayName("Verify updateCategory() method works")
     void updateCategory_ValidRequestDto_Success() throws Exception {
@@ -156,12 +187,29 @@ public class CategoryControllerTest {
 
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
+    @DisplayName("Verify updateCategory method "
+            + "returns IllegalArgumentException for non-existing Category id")
+    public void updateCategory_NonExistingId_IllegalArgumentException() {
+        Long nonExistingId = Long.MAX_VALUE;
+        CreateCategoryRequestDto requestDto = createCategoryRequestDto();
+        when(categoryService.update(nonExistingId, requestDto))
+                .thenThrow(new IllegalArgumentException(
+                        "Category with id " + nonExistingId + " not found"));
+        assertThrows(IllegalArgumentException.class,
+                () -> categoryController.updateCategory(nonExistingId, requestDto));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     @DisplayName("Verify deleteCategory() method works")
     void deleteCategory_ValidId_Success() throws Exception {
         long id = 1L;
         mockMvc.perform(MockMvcRequestBuilders.delete("/categories/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent())
+                .andReturn();
+        mockMvc.perform(MockMvcRequestBuilders.get("/categories/{id}", id))
+                .andExpect(status().isNotFound())
                 .andReturn();
     }
 
