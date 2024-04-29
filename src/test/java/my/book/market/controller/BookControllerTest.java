@@ -45,9 +45,9 @@ import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 class BookControllerTest {
     protected static MockMvc mockMvc;
     private static final String SQL_SCRIPT_BEFORE_TEST
-            = "database/books/add-books-with-category-to-books-and-categories-table.sql";
+            = "database/test/add-books-with-category-to-books-and-categories-table.sql";
     private static final String SQL_SCRIPT_AFTER_TEST
-            = "database/books/delete-books-with-category-from-books-and-categories-table.sql";
+            = "database/test/delete-books-with-category-from-books-and-categories-table.sql";
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
@@ -94,7 +94,7 @@ class BookControllerTest {
     @Test
     @WithMockUser(username = "admin", authorities = {"ADMIN"})
     @DisplayName("Verify createBook() method works")
-    @Sql(scripts = {"classpath:database/books/delete-test-book-from-book-table.sql"},
+    @Sql(scripts = {"classpath:database/test/delete-test-book-from-book-table.sql"},
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createBook_ValidRequestDto_Success() throws Exception {
         CreateBookRequestDto requestDto = createBookRequestDtoTest();

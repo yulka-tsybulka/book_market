@@ -41,9 +41,9 @@ import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 public class CategoryControllerTest {
     protected static MockMvc mockMvc;
     private static final String SQL_SCRIPT_BEFORE_TEST
-            = "database/books/add-books-with-category-to-books-and-categories-table.sql";
+            = "database/test/add-books-with-category-to-books-and-categories-table.sql";
     private static final String SQL_SCRIPT_AFTER_TEST
-            = "database/books/delete-books-with-category-from-books-and-categories-table.sql";
+            = "database/test/delete-books-with-category-from-books-and-categories-table.sql";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -89,7 +89,7 @@ public class CategoryControllerTest {
     @Test
     @WithMockUser(roles = {"ADMIN"})
     @DisplayName("Verify createCategory() method works")
-    @Sql(scripts = {"classpath:database/books/delete-test-category-from-category-table"},
+    @Sql(scripts = {"classpath:database/test/delete-test-category-from-category-table.sql"},
             executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void createCategory_ValidRequestDto_Success() throws Exception {
         CreateCategoryRequestDto requestDto = createTestCreateCategoryRequestDto();
