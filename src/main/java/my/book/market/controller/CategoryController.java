@@ -11,6 +11,7 @@ import my.book.market.dto.category.CreateCategoryRequestDto;
 import my.book.market.service.BookService;
 import my.book.market.service.CategoryService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,8 +48,13 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get category by id", description = "Get category by id")
-    public CategoryDto getCategoryById(@PathVariable("id") Long id) {
-        return categoryService.getById(id);
+    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable("id") Long id) {
+        CategoryDto categoryDto = categoryService.getById(id);
+        if (categoryDto == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(categoryDto);
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
